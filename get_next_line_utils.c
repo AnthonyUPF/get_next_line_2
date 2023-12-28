@@ -22,69 +22,102 @@ size_t	ft_strlen(char *s)
 	return (len);
 }
 
-char	*ft_strjoin(char *s1, char *s2)
+t_list	*ft_strchr(t_list *lst, int c)
 {
-	char	*str;
-	size_t	i;
-	size_t	c;
+	char	*content;
 
-	if (!s1)
+	while (lst)
 	{
-		s1 = malloc(sizeof(char));
-		if (!s1)
-			return (NULL);
-		s1[0] = '\0';
+		content = lst->content;
+		while (*content)
+		{
+			if (*content == (char)c)
+				return (lst);
+			content++;
+		}
+		lst = lst->next;
 	}
-	str = malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
-	if (!str)
-		return (ft_free(&s1));
-	i = -1;
-	while (s1[++i])
-		str[i] = s1[i];
-	c = -1;
-	while (s2[++c])
-		str[i + c] = s2[c];
-	str[i + c] = '\0';
-	free(s1);
-	return (str);
-}
-
-char	*ft_strchr(char *s, int c)
-{
-	while (*s)
-	{
-		if (*s == (char)c)
-			return (s);
-		s++;
-	}
-	if (!(char)c)
-		return (s);
 	return (NULL);
 }
 
-char	*ft_substr(char *s, unsigned int start, size_t len)
+t_list	*clean_storage(t_list **storage)
 {
-	size_t	i;
-	char	*res;
+	t_list	*new_storage;
+	t_list	*ptr;
+	size_t	len;
 
-	if (!s)
-		return (0);
-	if (start > ft_strlen(s))
+	ptr = ft_strchr(*storage, '\n');
+	if (!ptr)
+		return (ft_lstclear(storage));
+	len = (ptr->content - (*storage)->content) + 1;
+	if (!ptr->next)
 	{
-		res = malloc(sizeof(char));
-		if (!res)
-			return (NULL);
-		res[0] = '\0';
-		return (res);
+		new_storage = ft_substr((*storage)->content, len, ft_strlen((*storage)->content) - len);
+		ft_lstclear(storage);
+		return (new_storage);
 	}
-	if (ft_strlen(s) - start < len)
-		len = ft_strlen(s) - start;
-	res = malloc((len + 1) * sizeof(char));
-	if (!res)
-		return (NULL);
-	i = -1;
-	while (++i < len && start < ft_strlen(s) && s[start])
-		res[i] = s[start++];
-	res[i] = '\0';
-	return (res);
+	new_storage = ft_substr(ptr->content, 1, ft_strlen(ptr->content) - 1);
+	ft_lstclear(storage);
+	return (new_storage);
+}
+
+t_list	*readbuf(int fd, t_list **storage)
+{
+	int		rid;
+	char	*buffer;
+
+	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!buffer)
+		return (ft_lstclear(storage));
+	buffer[0] = '\0';
+	rid = 1;
+	while (rid > 0 && !ft_strchr(*storage, '\n'))
+	{
+		rid = read(fd, buffer, BUFFER_SIZE);
+		if (rid > 0)
+		{
+			buffer[rid] = '\0';
+			*storage = ft_strjoin(*storage, buffer);
+		}
+	}
+	free(buffer);
+	if (rid == -1)
+		return (ft_lstclear(storage));
+	return (*storage);
+}
+
+char	*new_line(t_list **storage)
+{
+	t_list	*ptr;
+	char	*line;
+	size_t	len;
+
+	ptr = ft_strchr(*storage, '\n');
+	len = (ptr->content - (*storage)->content) + 1;
+	line = ft_substr((*storage)->content, 0, len);
+	return (line);
+}
+
+t_list	*ft_lstclear(t_list **lst)
+{
+	t_list	*current;
+	t_list	*next;
+
+	current = *lst;
+	while (current != NULL)
+	{
+		next = current->next;
+		free(current->content);
+		free(current);
+		current = next;
+	}
+	*lst = NULL;
+	return (NULL);
+}
+
+char	*ft_free(char **str)
+{
+	free(*str);
+	*str = NULL;
+	return (NULL);
 }

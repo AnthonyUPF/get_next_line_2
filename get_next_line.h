@@ -14,7 +14,6 @@
 # define GET_NEXT_LINE_H
 
 # include <unistd.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <fcntl.h>
 # include <limits.h>
@@ -23,11 +22,21 @@
 #  define BUFFER_SIZE 42
 # endif
 
-size_t	ft_strlen(char *s);
-char	*ft_strjoin(char *s1, char *s2);
-char	*ft_strdup(char *s1);
-char	*ft_strchr(char *s, int c);
-char	*ft_substr(char *s, unsigned int start, size_t len);
-char	*get_next_line(int fd);
-char	*ft_free(char **str);
+typedef struct	s_list
+{
+	char			*content;
+	struct s_list	*next;
+}				t_list;
+
+size_t		ft_strlen(char *s);
+char		*ft_strjoin(char *s1, char *s2);
+char		*ft_strdup(char *s1);
+t_list		*ft_strchr(t_list *lst, int c);
+char		*ft_substr(char *s, unsigned int start, size_t len);
+char		*get_next_line(int fd);
+t_list		*ft_lstclear(t_list **lst);
+t_list		*readbuf(int fd, t_list **storage);
+char		*new_line(t_list **storage);
+char		*ft_free(char **str);
+
 #endif
